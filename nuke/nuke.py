@@ -35,7 +35,7 @@ colorama.init()
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=".", intents=intents)
 bot.remove_command("help")
-with open('config1.json') as f:
+with open('config.json') as f:
     data = json.load(f)
     token = data["TOKEN"]
 
