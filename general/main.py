@@ -48,9 +48,55 @@ async def help(interaction: discord.Interaction):
     embed.add_field(name="/purge", value="Clears messages", inline=False)
     embed.add_field(name="/dm", value="DMs a user", inline=False)
     embed.add_field(name="/unban", value="Unbans a user", inline=False)
-    embed.add_field(name="/nmap {ip}", value="get very basic info about an ip" ,inline=False)
-    embed.add_field(name="/ports {ip} {port1} {port2}", value="get info about ports within a range",inline=False)
+    embed.add_field9(name="/serverinfo", value="Shows server details", inline=False)
+    embed.add_field(name="/userinfo", value="Shows user info", inline=False)
+    embed.add_field(name="/role", value="Assigns a role to a user", inline=False)
+    embed.add_field(name="/removerole", value="Removes a role from a user", inline=False)
+    embed.add_field(name="/coinflip", value="Flips a coin", inline=False)
+    embed.add_field(name="/roll", value="Rolls a dice", inline=False)
+    embed.add_field(name=".nmap {ip}", value="get basic info about an ip", inline=False)
+    embed.add_field(name=".ports {ip} {port1} {port2}", value="get info about ports within a range",inline=False)
     await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="serverinfo", description="Shows server details")
+async def serverinfo(interaction: discord.Interaction):
+    guild = interaction.guild
+    embed = discord.Embed(title=guild.name, color=0xaf1aff)
+    embed.add_field(name="Member Count", value=guild.member_count, inline=False)
+    embed.add_field(name="Created At", value=guild.created_at.strftime("%Y-%m-%d"), inline=False)
+    await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="userinfo", description="Shows user details")
+async def userinfo(interaction: discord.Interaction, member: discord.Member):
+    embed = discord.Embed(title=f"{member.name}'s Info", color=0xaf1aff)
+    embed.add_field(name="Joined", value=member.joined_at.strftime("%Y-%m-%d"), inline=False)
+    embed.add_field(name="Roles", value=", ".join([r.name for r in member.roles]), inline=False)
+    await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="role", description="Assigns a role to a user")
+@commands.has_permissions(manage_roles=True)
+async def role(interaction: discord.Interaction, member: discord.Member, role: discord.Role):
+    await member.add_roles(role)
+    await interaction.response.send_message(f"{member.name} has been given the role {role.name}.")
+
+@bot.tree.command(name="removerole", description="Removes a role from a user")
+@commands.has_permissions(manage_roles=True)
+async def removerole(interaction: discord.Interaction, member: discord.Member, role: discord.Role):
+    await member.remove_roles(role)
+    await interaction.response.send_message(f"{role.name} role has been removed from {member.name}.")
+
+@bot.tree.command(name="coinflip", description="Flips a coin")
+async def coinflip(interaction: discord.Interaction):
+    import random
+    result = random.choice(["Heads", "Tails"])
+    await interaction.response.send_message(f"The coin landed on: {result}")
+
+@bot.tree.command(name="roll", description="Rolls a dice")
+async def roll(interaction: discord.Interaction, sides: int = 6):
+    import random
+    result = random.randint(1, sides)
+    await interaction.response.send_message(f"You rolled a {result} on a {sides}-sided dice.")
+
 
 
 @bot.tree.command(name="ban", description="Bans a user")
@@ -129,29 +175,7 @@ async def dm(interaction: discord.Interaction, user: discord.Member, message: st
 
 
 
-@bot.tree.command(name="nmap", description="Scans an IP with Nmap")
-async def nmap(interaction: discord.Interaction, ip: str):
-    if interaction.user.id == ALLOWED_USER_ID:
-        result = subprocess.run(["nmap", "-sV", "-oN", "prety.txt", ip], capture_output=True, text=True)
-
-        if result.returncode == 0:
-            await interaction.response.defer()  
-            await interaction.followup.send("Your result: \n")
-            await interaction.followup.send(file=discord.File("prety.txt"))
-            print("Sent nmap results.")
-        else:
-            await interaction.response.send_message("An error occurred while running nmap.")
-            print("Error running nmap:", result.stderr)
 
 
-
-@bot.tree.command(name="ports", description="Scans ports within a range")
-async def ports(interaction: discord.Interaction, ip: str, port1: int, port2: int):
-    result = subprocess.run(["nmap", "-p", f"{port1}-{port2}", "-oN", "ports_results.txt", ip], capture_output=True, text=True)
-    if result.returncode == 0:
-        await interaction.response.send_message("Port scan complete.", ephemeral=True)
-        await interaction.followup.send(file=discord.File("ports_results.txt"))
-    else:
-        await interaction.response.send_message("Error scanning ports.", ephemeral=True)
 
 bot.run(TOKEN)
